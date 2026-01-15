@@ -4,6 +4,7 @@ import win32api
 import win32gui
 import win32con
 from pet import Pet
+from platform import Platform
 
 # init
 pygame.init()
@@ -42,7 +43,8 @@ button_text = font.render("Spawn pet", True, (255,255,255))
 
 def get_platforms():
     platforms = []
-
+    
+    # Find window platforms
     def enum_handler(hwnd, _):
         if not win32gui.IsWindowVisible(hwnd):
             return 
@@ -52,20 +54,30 @@ def get_platforms():
             return
         
         l, t, r, b = win32gui.GetWindowRect(hwnd)
-        # Ignore tiny / weird windows
-        if r - l < 100 or b - t < 50:
+        if r - l < 100 or b - t < 50: # Ignore tiny / weird windows
             return
         
         # Create a thin platform on top border
-        platform_rect = pygame.Rect(
+        rect = pygame.Rect(
             l,
             t - 1,      # a few pixels above window
             r - l,
             2           # platform thickness
         )
-        platforms.append((hwnd, platform_rect))
+        platforms.append(Platform(rect, "window", hwnd))
 
     win32gui.EnumWindows(enum_handler, None)
+
+    # Find sheep platforms
+    for pet in pet_group:
+        rect = pygame.Rect(
+            pet.rect.left,
+            pet.rect.top - 1,
+            pet.rect.width,
+            2
+        )
+        platforms.append(Platform(rect, "pet", Pet))
+
     return platforms
 
 running = True
@@ -89,8 +101,8 @@ while running:
                 pet_group.add(Pet(WINDOW.get_width(), TASKBAR_TOP_Y, pet_group))
           
 
-    window_platforms = get_platforms()
-    pet_group.update(window_platforms)
+    platforms = get_platforms()
+    pet_group.update(platforms)
 
     pet_group.draw(WINDOW)
 
@@ -102,8 +114,8 @@ while running:
     WINDOW.blit(button_text, button_text.get_rect(center=BUTTON_RECT.center))
 
 
-    for platform in window_platforms: 
-        pygame.draw.rect(WINDOW,(255, 0, 0), platform[1])
+    #for platform in platforms: 
+        #pygame.draw.rect(WINDOW,(255, 0, 0), platform.rect)
 
     pygame.display.flip()
     pygame.display.update()

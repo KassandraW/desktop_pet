@@ -9,8 +9,7 @@ class Pet(pygame.sprite.Sprite):
         self.screen_width = screen_width
         self.ground_y = screen_height
 
-        self.platform_hwnd = None
-        self.on_window = False 
+        self.on_platform = False 
         scale = (125,88)
 
         # animation lists
@@ -48,43 +47,42 @@ class Pet(pygame.sprite.Sprite):
         self.gravity = 0.3
         self.drag_offset = pygame.Vector2()
    
-    def update(self, window_platforms):
+    def update(self, platforms):
         if self.state ==  "drag": # drag has highest priority
             self.drag()
-        elif not self.has_support(window_platforms): #otherwise check if we should fall
+
+        elif not self.has_support(platforms): # otherwise check if we should fall
             self.state = "fall"
-            self.on_window = False
-            self.platform_hwnd = None
+            self.on_platform = False
         
         if self.state == "fall":
-            self.fall(window_platforms)
+            self.fall(platforms)
         elif self.state == "walk":
             self.walk()
         elif self.state == "idle":
             self.idle()
      
 
-    def fall(self, window_platforms):
+    def fall(self, platforms):
         # physics
         self.vy += self.gravity
         self.rect.y += self.vy
 
-        self.on_window = False
-        self.platform_hwnd = None
+        self.on_platform= False
 
-        # check window platforms
-        for hwnd, platform in window_platforms:
+        # check platforms
+        for platform in platforms:
+            rect = platform.rect
             if (
-                self.rect.bottom >= platform.top and
-                self.rect.bottom - self.vy <= platform.top and
-                self.rect.right >= platform.left and
-                self.rect.left <= platform.right
+                self.rect.bottom >= rect.top and
+                self.rect.bottom - self.vy <= rect.top and
+                self.rect.right >= rect.left and
+                self.rect.left <= rect.right
             ):
-                self.rect.bottom = platform.top
+                self.rect.bottom = rect.top
                 self.vy = 0
                 self.state = "walk"
-                self.on_window = True
-                self.platform_hwnd = hwnd
+                self.on_platform = platform
                 return
 
         # snap to ground floor if it exceeds the limit
@@ -133,13 +131,12 @@ class Pet(pygame.sprite.Sprite):
         else: 
             self.image = self.walk_left[self.frame]
         
-        if self.on_window:
-            l, t, r, b = win32gui.GetWindowRect(self.platform_hwnd)
-
-            if self.rect.right < l or self.rect.left > r:
-                self.on_window = False
-                self.platform_hwnd = None
-                self.state = "fall"
+        if self.on_platform:
+            if self.on_platform.kind == "window":
+                if not self.on_platform.update():
+                    self.on_platform = None
+                    self.state = "fall"
+                
         
         # RANDOMLY GO IDLE
         if random.random() < 0.003:  # tweak this value
@@ -173,7 +170,7 @@ class Pet(pygame.sprite.Sprite):
                 pygame.event.set_grab(False)
 
 
-    def has_support(self,window_platforms):
+    def has_support(self, platforms):
         foot_left = self.rect.left
         foot_right  = self.rect.right
         foot_y = self.rect.bottom + 1
@@ -182,21 +179,12 @@ class Pet(pygame.sprite.Sprite):
         if foot_y >= self.ground_y:
             return True
 
-        # check sheep
-        for other in self.group:
-            if other is self:
-                continue
+        # check platforms
+        for platform in platforms:
+            rect = platform.rect 
             if (
-                other.rect.collidepoint(foot_left, foot_y) or
-                other.rect.collidepoint(foot_right, foot_y)
-                ):
-                return True
-
-        # check window platforms
-        for _, platform in window_platforms:
-            if (
-                platform.collidepoint(foot_left, foot_y) or
-                platform.collidepoint(foot_right, foot_y)
+                rect.collidepoint(foot_left, foot_y) or
+                rect.collidepoint(foot_right, foot_y)
             ):
                 return True
 
