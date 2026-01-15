@@ -13,22 +13,44 @@ class Pet(pygame.sprite.Sprite):
 
         # animation lists
         self.walk_right = [
-        pygame.transform.scale(pygame.image.load("graphics/sheep_walk_1.png").convert_alpha(), scale),
-        pygame.transform.scale(pygame.image.load("graphics/sheep_walk_2.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/sheep/walk_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/walk_2.png").convert_alpha(), scale)
         ]
 
         self.walk_left = [
             pygame.transform.flip(img, True, False) for img in self.walk_right
         ]
-        
+
+        self.drag_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/drag_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/drag_2.png").convert_alpha(), scale)
+        ]
+        self.drag_left = [
+            pygame.transform.flip(img, True, False) for img in self.drag_right
+        ]
+
+        self.idle_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/idle_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/idle_2.png").convert_alpha(), scale)
+        ]        
+
+        self.idle_left = [
+            pygame.transform.flip(img, True, False) for img in self.idle_right
+        ]
+
         # frame 
         self.frame = 0
         self.frame_timer = 0
         self.frame_delay = 20
+        
 
         # direction
         self.direction = random.choice([-1,1])
+            #speed
+              # speed
         self.vx = 1 * self.direction
+        self.run_vx = 8 * self.direction
+
         if self.direction == 1:
             self.image = self.walk_right[self.frame]
         else: 
@@ -43,7 +65,7 @@ class Pet(pygame.sprite.Sprite):
 
         # gravity 
         self.vy = 0
-        self.gravity = 0.3
+        self.gravity = 0.2
         self.drag_offset = pygame.Vector2()
    
     def update(self, platforms):
@@ -56,6 +78,8 @@ class Pet(pygame.sprite.Sprite):
         
         if self.state == "fall":
             self.fall(platforms)
+        elif self.state == "run":
+            self.run()
         elif self.state == "walk":
             self.walk()
         elif self.state == "idle":
@@ -79,7 +103,7 @@ class Pet(pygame.sprite.Sprite):
             ):
                 self.rect.bottom = rect.top
                 self.vy = 0
-                self.state = "walk"
+                self.set_idle(300,3000)
                 self.on_platform = platform
                 return
 
@@ -88,6 +112,8 @@ class Pet(pygame.sprite.Sprite):
             self.rect.bottom = self.ground_y
             self.vy = 0
             self.state = "walk"
+        
+        self.animate("drag", 5)
 
     def walk(self):
         # movement 
@@ -105,8 +131,7 @@ class Pet(pygame.sprite.Sprite):
                     self.rect.right = other.rect.left
                 else:
                     self.rect.left = other.rect.right 
-            self.state = "idle"
-            self.idle_until = pygame.time.get_ticks() + random.randint(500, 5000)
+            self.set_idle(500,5000)
             break 
 
         if self.rect.left <= 0: # hit the left border
@@ -118,24 +143,8 @@ class Pet(pygame.sprite.Sprite):
             self.vx = -abs(self.vx)
             self.direction = -1
 
-        # animation
-        self.frame_timer += 1
-        if self.frame_timer >= self.frame_delay:
-            self.frame_timer = 0 
-            self.frame = (self.frame + 1) % 2 
+        self.animate("walk", 20)
 
-        if self.direction == 1:
-            self.image = self.walk_right[self.frame]
-        else: 
-            self.image = self.walk_left[self.frame]
-        
-        if self.on_platform:
-            if self.on_platform.kind == "window":
-                if not self.on_platform.update():
-                    self.on_platform = None
-                    self.state = "fall"
-                
-        
         # RANDOMLY GO IDLE
         if random.random() < 0.003:  # tweak this value
             self.state = "idle"
@@ -147,12 +156,28 @@ class Pet(pygame.sprite.Sprite):
             # choose new direction
             self.direction = random.choice([-1,1])
             self.vx = abs(self.vx) * self.direction
-            self.state = "walk"
+            state = random.choice(["walk", "run"])
+            self.state = state
+        
+        self.animate("idle", 20)
 
     def drag(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
         self.rect.x = mouse_x + self.drag_offset.x
         self.rect.y = mouse_y + self.drag_offset.y
+        self.animate("drag", 5)
+
+    def run(self):
+        self.rect.x += self.run_vx
+        # if we hit anything - BOINK 
+
+        self.animate("walk", 5)
+        if random.random() < 0.003: 
+            state = random.choice(["idle", "walk"])
+            if state == "idle": 
+                self.set_idle(500,5000)
+            else:
+                self.state = state
 
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -167,6 +192,25 @@ class Pet(pygame.sprite.Sprite):
             if self.state == "drag":
                 self.state = "fall"
                 pygame.event.set_grab(False)
+
+    def set_idle(self, min, max):
+        self.state = "idle"
+        self.idle_until = pygame.time.get_ticks() + random.randint(min, max)
+
+    def animate(self, state, delay):
+        self.frame_delay = delay 
+        # animation
+        self.frame_timer += 1
+        if self.frame_timer >= self.frame_delay:
+            self.frame_timer = 0 
+            self.frame = (self.frame + 1) % 2 
+
+        if self.direction == 1:
+            list = getattr(self, f"{state}_right")
+        else: 
+            list = getattr(self, f"{state}_left")
+    
+        self.image = list[self.frame]
 
     def has_support(self, platforms):
         foot_left = self.rect.left
