@@ -1,6 +1,5 @@
 import pygame 
 import random 
-import win32gui
 
 class Pet(pygame.sprite.Sprite): 
     def __init__(self,screen_width, screen_height, group):
@@ -62,7 +61,6 @@ class Pet(pygame.sprite.Sprite):
         elif self.state == "idle":
             self.idle()
      
-
     def fall(self, platforms):
         # physics
         self.vy += self.gravity
@@ -163,12 +161,12 @@ class Pet(pygame.sprite.Sprite):
                 self.vy = 0
                 self.drag_offset.x = self.rect.x - event.pos[0]
                 self.drag_offset.y = self.rect.y - event.pos[1]
+                pygame.mouse.set_cursor(pygame.SYSTEM)
                 pygame.event.set_grab(True)
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             if self.state == "drag":
                 self.state = "fall"
                 pygame.event.set_grab(False)
-
 
     def has_support(self, platforms):
         foot_left = self.rect.left

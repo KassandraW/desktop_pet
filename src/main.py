@@ -31,7 +31,12 @@ TASKBAR_TOP_Y = work_rect[3]
 # set framerate
 clock = pygame.time.Clock()
 FPS = 60
+
+#pets
 pet_group = pygame.sprite.Group()
+max_pets = 10
+current_pets = 0
+
 
 # button setup
 BUTTON_RECT  = pygame.Rect(600,10,140,40)
@@ -97,8 +102,10 @@ while running:
         for sheep in pet_group:
             sheep.handle_event(event)
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if BUTTON_RECT.collidepoint(event.pos):
+            if BUTTON_RECT.collidepoint(event.pos) and current_pets < max_pets:
+                current_pets += 1
                 pet_group.add(Pet(WINDOW.get_width(), TASKBAR_TOP_Y, pet_group))
+                
           
 
     platforms = get_platforms()
@@ -113,7 +120,11 @@ while running:
     pygame.draw.rect(WINDOW, color, BUTTON_RECT)
     WINDOW.blit(button_text, button_text.get_rect(center=BUTTON_RECT.center))
 
+    for pet in pet_group:
+        if pet.rect.collidepoint(mouse_pos):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
+    # debug for visualizing platforms
     #for platform in platforms: 
         #pygame.draw.rect(WINDOW,(255, 0, 0), platform.rect)
 

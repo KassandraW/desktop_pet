@@ -3,7 +3,7 @@ import win32gui
 class Platform:
     def __init__(self, rect, kind, owner=None):
         self.rect = rect
-        self.kind = kind # "window" - "pet" - "ground"
+        self.kind = kind # "window" - "pet"
         self.owner = owner # hwnd or Pet or None
 
     def update(self):
