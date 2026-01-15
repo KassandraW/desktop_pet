@@ -42,14 +42,15 @@ class Pet(pygame.sprite.Sprite):
         self.frame = 0
         self.frame_timer = 0
         self.frame_delay = 20
-        
 
         # direction
         self.direction = random.choice([-1,1])
-            #speed
-              # speed
+
+        #speed
         self.vx = 1 * self.direction
-        self.run_vx = 8 * self.direction
+        self.run_vx = 0
+        self.acc = 0.1
+        self.max_speed = 10
 
         if self.direction == 1:
             self.image = self.walk_right[self.frame]
@@ -67,10 +68,14 @@ class Pet(pygame.sprite.Sprite):
         self.vy = 0
         self.gravity = 0.2
         self.drag_offset = pygame.Vector2()
+
    
     def update(self, platforms):
+
         if self.state ==  "drag": # drag has highest priority
             self.drag()
+        elif self.state == "crash":
+            self.crash()
 
         elif not self.has_support(platforms): # otherwise check if we should fall
             self.state = "fall"
@@ -84,7 +89,8 @@ class Pet(pygame.sprite.Sprite):
             self.walk()
         elif self.state == "idle":
             self.idle()
-     
+      
+
     def fall(self, platforms):
         # physics
         self.vy += self.gravity
@@ -111,7 +117,7 @@ class Pet(pygame.sprite.Sprite):
         if self.rect.bottom >= self.ground_y:
             self.rect.bottom = self.ground_y
             self.vy = 0
-            self.state = "walk"
+            self.set_idle(50,5000)
         
         self.animate("drag", 5)
 
@@ -156,6 +162,7 @@ class Pet(pygame.sprite.Sprite):
             # choose new direction
             self.direction = random.choice([-1,1])
             self.vx = abs(self.vx) * self.direction
+            self.run_vx = abs(self.run_vx) * self.direction
             state = random.choice(["walk", "run"])
             self.state = state
         
@@ -168,16 +175,40 @@ class Pet(pygame.sprite.Sprite):
         self.animate("drag", 5)
 
     def run(self):
+        # speed movement
+        self.run_vx += self.acc  * self.direction
+
+        if abs(self.run_vx) >= self.max_speed:
+            self.run_vx  = self.max_speed * self.direction
         self.rect.x += self.run_vx
-        # if we hit anything - BOINK 
+
+        # collisions
+        if (self.rect.left <= 0 or self.rect.right >= self.screen_width): # hit the left border
+            self.state = "crash"
+            return 
 
         self.animate("walk", 5)
+
+        # randomly stop
         if random.random() < 0.003: 
+            self.run_vx = 0
             state = random.choice(["idle", "walk"])
             if state == "idle": 
                 self.set_idle(500,5000)
             else:
                 self.state = state
+
+    def crash(self):
+        self.vy += self.gravity
+        self.rect.y -= self.vy
+        self.rect.x += self.vx * self.direction
+
+        # land on ground
+        if self.rect.bottom >= self.ground_y:
+            self.rect.bottom = self.ground_y
+            #self.vy = 0
+            #self.set_idle(500, 3000)
+
 
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
