@@ -24,11 +24,11 @@ class Pet(pygame.sprite.Sprite):
         # frame 
         self.frame = 0
         self.frame_timer = 0
-        self.frame_delay = 8
+        self.frame_delay = 20
 
         # direction
         self.direction = random.choice([-1,1])
-        self.vx = 4 * self.direction
+        self.vx = 1 * self.direction
         if self.direction == 1:
             self.image = self.walk_right[self.frame]
         else: 
@@ -109,7 +109,7 @@ class Pet(pygame.sprite.Sprite):
             self.idle_until = pygame.time.get_ticks() + random.randint(500, 5000)
             break 
 
-        if self.rect.left <= 0:
+        if self.rect.left <= 0: # hit the left border
             self.rect.left = 0
             self.vx = abs(self.vx)
             self.direction = 1
@@ -146,7 +146,7 @@ class Pet(pygame.sprite.Sprite):
         if pygame.time.get_ticks() >= self.idle_until:
             # choose new direction
             self.direction = random.choice([-1,1])
-            self.vx = 3 * self.direction
+            self.vx = abs(self.vx) * self.direction
             self.state = "walk"
 
     def drag(self):
@@ -161,7 +161,7 @@ class Pet(pygame.sprite.Sprite):
                 self.vy = 0
                 self.drag_offset.x = self.rect.x - event.pos[0]
                 self.drag_offset.y = self.rect.y - event.pos[1]
-                pygame.mouse.set_cursor(pygame.SYSTEM)
+
                 pygame.event.set_grab(True)
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             if self.state == "drag":
