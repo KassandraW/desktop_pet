@@ -3,7 +3,7 @@ import ctypes
 import win32api
 import win32gui
 import win32con
-from sheep import Sheep 
+from pet import Pet
 
 # init
 pygame.init()
@@ -30,7 +30,7 @@ TASKBAR_TOP_Y = work_rect[3]
 # set framerate
 clock = pygame.time.Clock()
 FPS = 60
-sheep_group = pygame.sprite.Group()
+pet_group = pygame.sprite.Group()
 
 # button setup
 BUTTON_RECT  = pygame.Rect(600,10,140,40)
@@ -38,9 +38,9 @@ BUTTON_COLOR = (180,180,180)
 BUTTON_HOVER = (150,150,150)
 
 font = pygame.font.SysFont(None,24)
-button_text = font.render("Spawn Sheep", True, (255,255,255))
+button_text = font.render("Spawn pet", True, (255,255,255))
 
-def get_window_platforms():
+def get_platforms():
     platforms = []
 
     def enum_handler(hwnd, _):
@@ -71,6 +71,7 @@ def get_window_platforms():
 running = True
 transparent_surface = pygame.Surface(WINDOW.get_size())
 transparent_surface.fill((0, 0, 0))
+
 while running:
     clock.tick(FPS)
     WINDOW.fill((0, 0, 0))  # MUST match transparency color
@@ -81,17 +82,18 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        for sheep in sheep_group:
+        for sheep in pet_group:
             sheep.handle_event(event)
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if BUTTON_RECT.collidepoint(event.pos):
-                sheep_group.add(Sheep(WINDOW.get_width(), TASKBAR_TOP_Y, sheep_group))
+                pet_group.add(Pet(WINDOW.get_width(), TASKBAR_TOP_Y, pet_group))
           
 
-    window_platforms = get_window_platforms()
-    sheep_group.update(window_platforms)
+    window_platforms = get_platforms()
+    pet_group.update(window_platforms)
 
-    sheep_group.draw(WINDOW)
+    pet_group.draw(WINDOW)
+
     
     # draw button 
     mouse_pos = pygame.mouse.get_pos()
@@ -99,6 +101,9 @@ while running:
     pygame.draw.rect(WINDOW, color, BUTTON_RECT)
     WINDOW.blit(button_text, button_text.get_rect(center=BUTTON_RECT.center))
 
+
+    for platform in window_platforms: 
+        pygame.draw.rect(WINDOW,(255, 0, 0), platform[1])
+
     pygame.display.flip()
     pygame.display.update()
-    clock.tick(60)

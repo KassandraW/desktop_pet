@@ -2,7 +2,7 @@ import pygame
 import random 
 import win32gui
 
-class Sheep(pygame.sprite.Sprite): 
+class Pet(pygame.sprite.Sprite): 
     def __init__(self,screen_width, screen_height, group):
         super().__init__()
         self.group = group 
