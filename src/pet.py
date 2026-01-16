@@ -54,6 +54,7 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1
 
         # run
+        self.run_chance = 0.05
         self.acc = 0.1
         self.max_speed = 10
         self.knockback_x = 3
@@ -180,8 +181,11 @@ class Pet(pygame.sprite.Sprite):
             self.direction = random.choice([-1,1])
             self.change_direction()
 
-            state = random.choice(["walk", "run"])
-            self.state = state
+
+            if random.random() < self.run_chance:  # chance to run
+                self.state = "run"
+            else:
+                self.state = "walk"
         
         self.animate("idle", 20)
 
@@ -251,6 +255,13 @@ class Pet(pygame.sprite.Sprite):
         self.vy += self.gravity
         self.move()
 
+        if self.rect.top < 0:
+            self.rect.top = -1
+            self.reset_move_attributes()
+            self.state = "fall"
+            return 
+        
+
         # check platforms
         for platform in platforms:
             rect = platform.rect
@@ -281,11 +292,7 @@ class Pet(pygame.sprite.Sprite):
             self.rect.right = self.screen_width
             self.vx  = -abs(self.vx)
             return 
-        if self.rect.top < 0:
-            self.rect.top = 0
-            self.state = "fall"
-            return 
-        
+   
 
         hits = pygame.sprite.spritecollide(self, self.group, False)
         for other in hits:
@@ -296,10 +303,13 @@ class Pet(pygame.sprite.Sprite):
             else :
                 if self.vx > 0: # moving right
                     self.rect.right = other.rect.left
+                    self.vx = -abs(self.vx)
+                    return
                 else:
                     self.rect.left = other.rect.right 
-                self.start_crash(self.crash_dir * -1)
-            return
+                    self.vx  = abs(self.vx)
+                    return
+        
      
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
