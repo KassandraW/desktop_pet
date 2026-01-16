@@ -46,17 +46,24 @@ class Pet(pygame.sprite.Sprite):
         # direction
         self.direction = random.choice([-1,1])
 
-        #speed
-        self.vx = 1 * self.direction
-        self.run_vx = 0
+        # walk
+        self.walk_speed = 1
+
+        # run
         self.acc = 0.1
         self.max_speed = 10
+        self.knockback_x = 4
 
+        # current speed
+        self.vx = 0
+    
+        # set correct animation image for direction 
         if self.direction == 1:
             self.image = self.walk_right[self.frame]
         else: 
             self.image = self.walk_left[self.frame]
 
+        # spawn location
         pos = (random.randint(50,screen_width - 50), 0)
         self.rect = self.image.get_rect(midbottom=pos)
 
@@ -71,7 +78,6 @@ class Pet(pygame.sprite.Sprite):
 
    
     def update(self, platforms):
-
         if self.state ==  "drag": # drag has highest priority
             self.drag()
         elif self.state == "crash":
@@ -89,7 +95,6 @@ class Pet(pygame.sprite.Sprite):
             self.walk()
         elif self.state == "idle":
             self.idle()
-      
 
     def fall(self, platforms):
         # physics
@@ -123,7 +128,9 @@ class Pet(pygame.sprite.Sprite):
 
     def walk(self):
         # movement 
-        self.rect.x += self.vx
+        self.vx = self.walk_speed
+        self.move()
+        
         hits = pygame.sprite.spritecollide(self, self.group, False)
         for other in hits:
             if other is self:
@@ -142,12 +149,12 @@ class Pet(pygame.sprite.Sprite):
 
         if self.rect.left <= 0: # hit the left border
             self.rect.left = 0
-            self.vx = abs(self.vx)
             self.direction = 1
+            self.change_direction()
         elif self.rect.right >= self.screen_width:
             self.rect.right = self.screen_width
-            self.vx = -abs(self.vx)
             self.direction = -1
+            self.change_direction()
 
         self.animate("walk", 20)
 
@@ -161,9 +168,10 @@ class Pet(pygame.sprite.Sprite):
         if pygame.time.get_ticks() >= self.idle_until:
             # choose new direction
             self.direction = random.choice([-1,1])
-            self.vx = abs(self.vx) * self.direction
-            self.run_vx = abs(self.run_vx) * self.direction
+            self.change_direction()
+
             state = random.choice(["walk", "run"])
+            self.reset_move_attributes()
             self.state = state
         
         self.animate("idle", 20)
@@ -176,14 +184,14 @@ class Pet(pygame.sprite.Sprite):
 
     def run(self):
         # speed movement
-        self.run_vx += self.acc  * self.direction
-
-        if abs(self.run_vx) >= self.max_speed:
-            self.run_vx  = self.max_speed * self.direction
-        self.rect.x += self.run_vx
+        self.vx += self.acc * self.direction
+        if abs(self.vx) >= self.max_speed:
+            self.vx  = self.max_speed * self.direction
+        self.move()
 
         # collisions
-        if (self.rect.left <= 0 or self.rect.right >= self.screen_width): # hit the left border
+        if (self.rect.left <= 0) or (self.rect.right >= self.screen_width): # hit the border
+            self.vy = -10
             self.state = "crash"
             return 
 
@@ -191,24 +199,18 @@ class Pet(pygame.sprite.Sprite):
 
         # randomly stop
         if random.random() < 0.003: 
-            self.run_vx = 0
-            state = random.choice(["idle", "walk"])
-            if state == "idle": 
-                self.set_idle(500,5000)
-            else:
-                self.state = state
+            self.set_idle(500,5000)
 
     def crash(self):
         self.vy += self.gravity
-        self.rect.y -= self.vy
-        self.rect.x += self.vx * self.direction
+        self.rect.y += self.vy
+        self.rect.x += self.knockback_x * -1
 
         # land on ground
         if self.rect.bottom >= self.ground_y:
             self.rect.bottom = self.ground_y
-            #self.vy = 0
-            #self.set_idle(500, 3000)
-
+            self.vy = 0
+            self.set_idle(500, 3000)
 
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -262,3 +264,17 @@ class Pet(pygame.sprite.Sprite):
                 return True
 
         return False
+    
+    def move(self):
+        self.rect.x
+        self.rect.x += self.vx
+        self.rect.y += self.vy
+
+    def reset_move_attributes(self):
+        self.xv = 0
+        self.vy = 0
+
+    def change_direction(self):
+        self.walk_speed = abs(self.walk_speed) * self.direction
+        self.run_speed = abs(self.run_speed) * self.direction
+        self.knockback_x = abs(self.knockback_x) * self.direction
