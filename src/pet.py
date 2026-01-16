@@ -9,7 +9,11 @@ class Pet(pygame.sprite.Sprite):
         self.ground_y = screen_height
 
         self.on_platform = False 
-        scale = (125,88)
+        h = (pygame.image.load("graphics/sheep/walk_1.png").convert_alpha()).get_height()
+        w = (pygame.image.load("graphics/sheep/walk_1.png").convert_alpha()).get_width()
+        s = 0.8
+        
+        scale = (w * s, h * s)
 
         # animation lists
         self.walk_right = [
@@ -52,7 +56,11 @@ class Pet(pygame.sprite.Sprite):
         # run
         self.acc = 0.1
         self.max_speed = 10
-        self.knockback_x = 4
+        self.knockback_x = 3
+        self.knockback_y = -6
+
+
+        self.crash_dir = 0
 
         # current speed
         self.vx = 0
@@ -80,8 +88,10 @@ class Pet(pygame.sprite.Sprite):
     def update(self, platforms):
         if self.state ==  "drag": # drag has highest priority
             self.drag()
+            return
         elif self.state == "crash":
-            self.crash()
+            self.crash(platforms)
+            return
 
         elif not self.has_support(platforms): # otherwise check if we should fall
             self.state = "fall"
@@ -121,7 +131,6 @@ class Pet(pygame.sprite.Sprite):
         # snap to ground floor if it exceeds the limit
         if self.rect.bottom >= self.ground_y:
             self.rect.bottom = self.ground_y
-            self.vy = 0
             self.set_idle(50,5000)
         
         self.animate("drag", 5)
@@ -135,7 +144,7 @@ class Pet(pygame.sprite.Sprite):
         for other in hits:
             if other is self:
                 continue 
-            if other.state == "drag":
+            if other.state == "drag" or other.state == "crash":
                 continue 
             if self.rect.bottom <= other.rect.top:
                 continue 
@@ -181,6 +190,7 @@ class Pet(pygame.sprite.Sprite):
         self.rect.x = mouse_x + self.drag_offset.x
         self.rect.y = mouse_y + self.drag_offset.y
 
+        # can't be dragged outside of desktop frame
         if self.rect.left < 0:
             self.rect.left = 0
         elif self.rect.right > self.screen_width:
@@ -200,11 +210,30 @@ class Pet(pygame.sprite.Sprite):
         self.move()
 
         # collisions
-        if (self.rect.left <= 0) or (self.rect.right >= self.screen_width): # hit the border
-            self.vy = -10
-            self.vx = self.knockback_x * -1
-            self.state = "crash"
+        # border collision
+        if self.rect.left <= 0: 
+            self.rect.left = 0
+            self.start_crash(1) # bounce right
             return 
+        elif self.rect.right >= self.screen_width:
+            self.rect.right = self.screen_width
+            self.start_crash(-1) # bounce right
+            return 
+        
+        hits = pygame.sprite.spritecollide(self, self.group, False)
+        for other in hits:
+            if other is self:
+                continue 
+            if self.rect.bottom <= other.rect.top:
+                continue 
+            else :
+                if self.vx > 0: # moving right
+                    self.rect.right = other.rect.left
+                    self.start_crash(-1)
+                else:
+                    self.rect.left = other.rect.right 
+                    self.start_crash(1)
+                return 
 
         self.animate("walk", 5)
 
@@ -212,15 +241,66 @@ class Pet(pygame.sprite.Sprite):
         if random.random() < 0.003: 
             self.set_idle(500,5000)
 
-    def crash(self):
+    def start_crash(self, hit_dir):
+        self.state = "crash"
+        self.crash_dir = hit_dir
+        self.vx = self.knockback_x * hit_dir
+        self.vy = self.knockback_y
+
+    def crash(self, platforms):
         self.vy += self.gravity
         self.move()
+
+        # check platforms
+        for platform in platforms:
+            rect = platform.rect
+            if (
+                self.rect.bottom >= rect.top and
+                self.rect.bottom - self.vy <= rect.top and
+                self.rect.right >= rect.left and
+                self.rect.left <= rect.right
+):
+                self.rect.bottom = rect.top
+                self.set_idle(300,3000)
+                self.on_platform = platform
+                return
 
         # land on ground
         if self.rect.bottom >= self.ground_y:
             self.rect.bottom = self.ground_y
             self.set_idle(500, 3000)
 
+
+        # collisions
+        # border collision
+        if self.rect.left <= 0: 
+            self.rect.left = 0
+            self.vx = abs(self.vx)
+            return 
+        elif self.rect.right >= self.screen_width:
+            self.rect.right = self.screen_width
+            self.vx  = -abs(self.vx)
+            return 
+        if self.rect.top < 0:
+            self.rect.top = 0
+            self.state = "fall"
+            return 
+        
+
+        hits = pygame.sprite.spritecollide(self, self.group, False)
+        for other in hits:
+            if other is self:
+                continue 
+            if self.rect.bottom <= other.rect.top:
+                continue 
+            else :
+                if self.vx > 0: # moving right
+                    self.rect.right = other.rect.left
+                else:
+                    self.rect.left = other.rect.right 
+                self.start_crash(self.crash_dir * -1)
+            return
+     
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
