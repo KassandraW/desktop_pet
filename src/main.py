@@ -32,7 +32,7 @@ TASKBAR_TOP_Y = work_rect[3]
 clock = pygame.time.Clock()
 FPS = 60
 
-#pets
+# pets
 pet_group = pygame.sprite.Group()
 max_pets = 10
 current_pets = 0
