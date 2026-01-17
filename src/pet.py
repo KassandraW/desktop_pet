@@ -200,11 +200,12 @@ class Pet(pygame.sprite.Sprite):
 
             if random.random() < self.run_chance:  # chance to run
                 self.state = "run"
-            else:
+            elif random.random() < 0.1:
                 self.frame = 0
                 self.frame_timer = 0
-                state = random.choice(["walk", "lay"])
-                self.state = state
+                self.state = "lay"
+            else: 
+                self.state = "walk"
         
         self.animate("idle", 20)
 
