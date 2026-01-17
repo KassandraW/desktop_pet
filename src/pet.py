@@ -17,37 +17,38 @@ class Pet(pygame.sprite.Sprite):
 
         # animations
         self.walk_right = [
-            pygame.transform.scale(pygame.image.load("graphics/sheep/walk_1.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/walk_2.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/emilie/walk_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/emilie/walk_2.png").convert_alpha(), scale)
         ]
         self.walk_left = [
             pygame.transform.flip(img, True, False) for img in self.walk_right
         ]
         self.drag_right = [
-            pygame.transform.scale(pygame.image.load("graphics/sheep/drag_1.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/drag_2.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/emilie/drag_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/emilie/drag_1.png").convert_alpha(), scale),
+            
         ]
         self.drag_left = [
             pygame.transform.flip(img, True, False) for img in self.drag_right
         ]
         self.idle_right = [
-            pygame.transform.scale(pygame.image.load("graphics/sheep/idle_1.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/idle_2.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/emilie/idle_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/emilie/idle_2.png").convert_alpha(), scale)
         ]        
         self.idle_left = [
             pygame.transform.flip(img, True, False) for img in self.idle_right
         ]
         self.lay_right = [
-            pygame.transform.scale(pygame.image.load("graphics/sheep/lay_1.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/lay_2.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/lay_3.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/emilie/lay_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/emilie/lay_2.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/emilie/lay_3.png").convert_alpha(), scale)
         ]
         self.lay_left = [
             pygame.transform.flip(img, True, False) for img in self.lay_right
         ]
         self.sleep_right = [
-            pygame.transform.scale(pygame.image.load("graphics/sheep/sleep_1.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/sleep_2.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/emilie/sleep_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/emilie/sleep_2.png").convert_alpha(), scale)
         ]
         self.sleep_left = [
             pygame.transform.flip(img, True, False) for img in self.sleep_right
@@ -85,7 +86,8 @@ class Pet(pygame.sprite.Sprite):
 
         # spawn location
         pos = (random.randint(50,screen_width - 50), 0)
-        self.rect = self.image.get_rect(midbottom=pos)
+        self.rect = self.walk_right[0].get_rect(midbottom=pos)
+
 
         # state
         self.state = "fall"
@@ -366,13 +368,12 @@ class Pet(pygame.sprite.Sprite):
             list = getattr(self, f"{state}_right")
         else: 
             list = getattr(self, f"{state}_left")
+
         # animation
         self.frame_timer += 1
         if self.frame_timer >= self.frame_delay:
             self.frame_timer = 0 
             self.frame = (self.frame + 1) % len(list)
-
-        
     
         self.image = list[self.frame]
 
