@@ -15,16 +15,14 @@ class Pet(pygame.sprite.Sprite):
         
         scale = (w * s, h * s)
 
-        # animation lists
+        # animations
         self.walk_right = [
             pygame.transform.scale(pygame.image.load("graphics/sheep/walk_1.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/walk_2.png").convert_alpha(), scale)
         ]
-
         self.walk_left = [
             pygame.transform.flip(img, True, False) for img in self.walk_right
         ]
-
         self.drag_right = [
             pygame.transform.scale(pygame.image.load("graphics/sheep/drag_1.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/drag_2.png").convert_alpha(), scale)
@@ -32,14 +30,27 @@ class Pet(pygame.sprite.Sprite):
         self.drag_left = [
             pygame.transform.flip(img, True, False) for img in self.drag_right
         ]
-
         self.idle_right = [
             pygame.transform.scale(pygame.image.load("graphics/sheep/idle_1.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/idle_2.png").convert_alpha(), scale)
         ]        
-
         self.idle_left = [
             pygame.transform.flip(img, True, False) for img in self.idle_right
+        ]
+        self.lay_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/lay_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/lay_2.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/lay_3.png").convert_alpha(), scale)
+        ]
+        self.lay_left = [
+            pygame.transform.flip(img, True, False) for img in self.lay_right
+        ]
+        self.sleep_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/sleep_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/sleep_2.png").convert_alpha(), scale)
+        ]
+        self.sleep_left = [
+            pygame.transform.flip(img, True, False) for img in self.sleep_right
         ]
 
         # frame 
@@ -79,6 +90,7 @@ class Pet(pygame.sprite.Sprite):
         # state
         self.state = "fall"
         self.idle_until = 0
+        self.sleep_until = 0
 
         # gravity 
         self.vy = 0
@@ -106,6 +118,10 @@ class Pet(pygame.sprite.Sprite):
             self.walk()
         elif self.state == "idle":
             self.idle()
+        elif self.state == "lay":
+            self.lay()
+        elif self.state == "sleep":
+            self.sleep()
 
     def fall(self, platforms):
         # physics
@@ -185,7 +201,10 @@ class Pet(pygame.sprite.Sprite):
             if random.random() < self.run_chance:  # chance to run
                 self.state = "run"
             else:
-                self.state = "walk"
+                self.frame = 0
+                self.frame_timer = 0
+                state = random.choice(["walk", "lay"])
+                self.state = state
         
         self.animate("idle", 20)
 
@@ -309,7 +328,23 @@ class Pet(pygame.sprite.Sprite):
                     self.rect.left = other.rect.right 
                     self.vx  = abs(self.vx)
                     return
+
+    def lay(self):
+        self.animate("lay", 10)
+
+        if self.frame == len(self.lay_right) - 1:
+            self.frame = 0
+            self.timer = 0
+            self.sleep_until = pygame.time.get_ticks() + random.randint(5000, 20000)
+            self.state = "sleep"
+
+    def sleep(self):
+        # sleep until timer
+        if pygame.time.get_ticks() >= self.sleep_until:
+            self.set_idle(300, 10000)
+        self.animate("sleep", 20)
         
+
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
@@ -330,16 +365,17 @@ class Pet(pygame.sprite.Sprite):
 
     def animate(self, state, delay):
         self.frame_delay = delay 
-        # animation
-        self.frame_timer += 1
-        if self.frame_timer >= self.frame_delay:
-            self.frame_timer = 0 
-            self.frame = (self.frame + 1) % 2 
-
         if self.direction == 1:
             list = getattr(self, f"{state}_right")
         else: 
             list = getattr(self, f"{state}_left")
+        # animation
+        self.frame_timer += 1
+        if self.frame_timer >= self.frame_delay:
+            self.frame_timer = 0 
+            self.frame = (self.frame + 1) % len(list)
+
+        
     
         self.image = list[self.frame]
 
