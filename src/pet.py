@@ -261,10 +261,6 @@ class Pet(pygame.sprite.Sprite):
 
         self.animate("walk", 5)
 
-        # randomly stop
-        if random.random() < 0.003: 
-            self.set_idle(500,5000)
-
     def start_crash(self, hit_dir):
         self.state = "crash"
         self.crash_dir = hit_dir
@@ -336,7 +332,7 @@ class Pet(pygame.sprite.Sprite):
         if self.frame == len(self.lay_right) - 1:
             self.frame = 0
             self.timer = 0
-            self.sleep_until = pygame.time.get_ticks() + random.randint(5000, 20000)
+            self.sleep_until = pygame.time.get_ticks() + random.randint(10000, 20000) # sleep for at least 10 seconds
             self.state = "sleep"
 
     def sleep(self):
