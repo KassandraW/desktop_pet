@@ -54,7 +54,7 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1
 
         # run
-        self.run_chance = 0.05
+        self.run_chance = 0.09
         self.acc = 0.1
         self.max_speed = 10
         self.knockback_x = 3
@@ -310,7 +310,6 @@ class Pet(pygame.sprite.Sprite):
                     self.vx  = abs(self.vx)
                     return
         
-     
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
