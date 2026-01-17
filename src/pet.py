@@ -52,6 +52,14 @@ class Pet(pygame.sprite.Sprite):
         self.sleep_left = [
             pygame.transform.flip(img, True, False) for img in self.sleep_right
         ]
+        self.turn_left = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/turn_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/turn_2.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/turn_3.png").convert_alpha(), scale)
+        ]
+        self.turn_right = [
+            pygame.transform.flip(img, True, False) for img in self.turn_left
+        ]
 
         # frame 
         self.frame = 0
