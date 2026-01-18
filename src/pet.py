@@ -8,7 +8,6 @@ class Pet(pygame.sprite.Sprite):
         self.screen_width = screen_width
         self.ground_y = screen_height
 
-        self.on_platform = False 
         h = (pygame.image.load("graphics/sheep/walk_1.png").convert_alpha()).get_height()
         w = (pygame.image.load("graphics/sheep/walk_1.png").convert_alpha()).get_width()
         s = 0.8
@@ -120,7 +119,6 @@ class Pet(pygame.sprite.Sprite):
 
         elif not self.has_support(platforms): # otherwise check if we should fall
             self.state = "fall"
-            self.on_platform = False
         
         if self.state == "fall":
             self.fall(platforms)
@@ -138,11 +136,10 @@ class Pet(pygame.sprite.Sprite):
             self.turn()
 
     def fall(self, platforms):
+        self.animate("drag", 5)
         # physics
         self.vy += self.gravity
         self.rect.y += self.vy
-
-        self.on_platform= False
 
         # check platforms
         for platform in platforms:
@@ -154,9 +151,7 @@ class Pet(pygame.sprite.Sprite):
                 self.rect.left <= rect.right
             ):
                 self.rect.bottom = rect.top
-                self.vy = 0
                 self.set_idle(300,3000)
-                self.on_platform = platform
                 return
 
         # snap to ground floor if it exceeds the limit
@@ -164,7 +159,7 @@ class Pet(pygame.sprite.Sprite):
             self.rect.bottom = self.ground_y
             self.set_idle(50,5000)
         
-        self.animate("drag", 5)
+        
 
     def walk(self):
         # movement 
