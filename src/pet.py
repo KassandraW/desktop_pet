@@ -53,9 +53,11 @@ class Pet(pygame.sprite.Sprite):
             pygame.transform.flip(img, True, False) for img in self.sleep_right
         ]
         self.turn_left = [
+            self.idle_right[0],
             pygame.transform.scale(pygame.image.load("graphics/sheep/turn_1.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/turn_2.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/turn_3.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/sheep/turn_3.png").convert_alpha(), scale),
+            self.idle_left[0]
         ]
         self.turn_right = [
             pygame.transform.flip(img, True, False) for img in self.turn_left
@@ -70,13 +72,13 @@ class Pet(pygame.sprite.Sprite):
         self.direction = random.choice([-1,1])
 
         # walk
-        self.walk_speed = 1
+        self.walk_speed = 1 * self.direction
 
         # run
         self.run_chance = 0.1
-        self.acc = 0.1
+        self.acc = 0.1 * self.direction
         self.max_speed = 10
-        self.knockback_x = 3
+        self.knockback_x = 3 * self.direction
         self.knockback_y = -6
 
 
@@ -105,6 +107,8 @@ class Pet(pygame.sprite.Sprite):
         self.gravity = 0.2
         self.drag_offset = pygame.Vector2()
 
+        self.next_state = ""
+
    
     def update(self, platforms):
         if self.state ==  "drag": # drag has highest priority
@@ -130,6 +134,8 @@ class Pet(pygame.sprite.Sprite):
             self.lay()
         elif self.state == "sleep":
             self.sleep()
+        elif self.state == "turn":
+            self.turn()
 
     def fall(self, platforms):
         # physics
@@ -183,12 +189,12 @@ class Pet(pygame.sprite.Sprite):
 
         if self.rect.left <= 0: # hit the left border
             self.rect.left = 0
-            self.direction = 1
-            self.change_direction()
+            self.request_turn(1, "walk")
+            return 
         elif self.rect.right >= self.screen_width:
             self.rect.right = self.screen_width
-            self.direction = -1
-            self.change_direction()
+            self.request_turn(-1, "walk")
+            return 
 
         self.animate("walk", 20)
 
@@ -198,25 +204,21 @@ class Pet(pygame.sprite.Sprite):
             self.idle_until = pygame.time.get_ticks() + random.randint(3000, 10000)
     
     def idle(self):
+        self.animate("idle", 20)
         self.reset_move_attributes()
         # stand still for x amount of time
         if pygame.time.get_ticks() >= self.idle_until:
-            # choose new direction
-            self.direction = random.choice([-1,1])
-            self.change_direction()
-
-
             if random.random() < self.run_chance:  # chance to run
-                self.state = "run"
+                next_state = "run"
             elif random.random() < 0.1:
-                self.frame = 0
-                self.frame_timer = 0
-                self.state = "lay"
+                next_state = "lay"
             else: 
-                self.state = "walk"
-        
-        self.animate("idle", 20)
+                next_state = "walk"
 
+        # choose new direction
+            new_dir = random.choice([-1,1])
+            self.request_turn(new_dir, next_state)
+        
     def drag(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
         self.rect.x = mouse_x + self.drag_offset.x
@@ -349,7 +351,6 @@ class Pet(pygame.sprite.Sprite):
             self.set_idle(300, 10000)
         self.animate("sleep", 20)
         
-
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
@@ -413,7 +414,29 @@ class Pet(pygame.sprite.Sprite):
         self.vx = 0
         self.vy = 0
 
+    def request_turn(self, new_dir, next_state):
+        if new_dir == self.direction:
+            self.state = next_state
+            return 
+        
+        self.direction = new_dir
+        self.next_state = next_state
+        self.frame = 0
+        self.frame_timer = 0
+        self.state = "turn"
+
+    def turn(self):
+        self.reset_move_attributes()
+        self.animate("turn", 15)
+
+        if self.frame == len(self.turn_right) - 1:
+            self.direction = self.direction
+            self.change_direction()
+            self.frame = 0
+            self.frame_timer = 0
+            self.state = self.next_state  
+
     def change_direction(self):
-        self.walk_speed = abs(self.walk_speed) * self.direction
-        self.knockback_x = abs(self.knockback_x) * self.direction
-        self.acc = abs(self.acc) * self.direction
+            self.walk_speed = abs(self.walk_speed) * self.direction
+            self.knockback_x = abs(self.knockback_x) * self.direction
+            self.acc = abs(self.acc) * self.direction
