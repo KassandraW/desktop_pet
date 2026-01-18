@@ -371,6 +371,9 @@ class Pet(pygame.sprite.Sprite):
 
     def animate(self, state, delay):
         self.frame_delay = delay 
+
+        
+
         if self.direction == 1:
             list = getattr(self, f"{state}_right")
         else: 
@@ -381,8 +384,10 @@ class Pet(pygame.sprite.Sprite):
             self.frame_timer = 0 
             self.frame = (self.frame + 1) % len(list)
 
+        if self.frame >= len(list):
+            self.frame = 0
         
-    
+
         self.image = list[self.frame]
 
     def has_support(self, platforms):
