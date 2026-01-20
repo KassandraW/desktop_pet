@@ -75,7 +75,7 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1 * self.direction
 
         # run
-        self.run_chance = 0.1
+        self.run_chance = 0.15
         self.acc = 0.1 * self.direction
         self.max_speed = 10
         self.knockback_x = 3 * self.direction
@@ -133,59 +133,6 @@ class Pet(pygame.sprite.Sprite):
         elif self.state == "turn":
             self.turn()
 
-    def fall(self, platforms):
-        # physics
-        self.vy += self.gravity
-        self.rect.y += self.vy
-
-        # animation
-        self.animate("drag", 5)
-
-        # check if we landed on a platform or the ground
-        support_check = self.has_support(platforms)
-        if support_check[0]:
-                self.rect.bottom = support_check[1]
-                self.set_idle(300,5000)
-                return
-        
-
-    def walk(self):
-        # movement 
-        self.vx = self.walk_speed
-        self.move()
-        
-        hits = pygame.sprite.spritecollide(self, self.group, False)
-        for other in hits:
-            if other is self:
-                continue 
-            if other.state == "drag" or other.state == "crash":
-                continue 
-            if self.rect.bottom <= other.rect.top:
-                continue 
-            else :
-                if self.vx > 0: # moving right
-                    self.rect.right = other.rect.left
-                else:
-                    self.rect.left = other.rect.right 
-            self.set_idle(500,5000)
-            break 
-
-        if self.rect.left <= 0: # hit the left border
-            self.rect.left = 0
-            self.request_turn(1, "walk")
-            return 
-        elif self.rect.right >= self.screen_width:
-            self.rect.right = self.screen_width
-            self.request_turn(-1, "walk")
-            return 
-
-        self.animate("walk", 20)
-
-        # RANDOMLY GO IDLE
-        if random.random() < 0.003:  # tweak this value
-            self.state = "idle"
-            self.idle_until = pygame.time.get_ticks() + random.randint(3000, 10000)
-    
     def idle(self):
         self.animate("idle", 20)
         self.reset_move_attributes()
@@ -201,6 +148,21 @@ class Pet(pygame.sprite.Sprite):
         # choose new direction
             new_dir = random.choice([-1,1])
             self.request_turn(new_dir, next_state)
+        
+    def fall(self, platforms):
+        # physics
+        self.vy += self.gravity
+        self.rect.y += self.vy
+
+        # animation
+        self.animate("drag", 5)
+
+        # check if we landed on a platform or the ground
+        support_check = self.has_support(platforms)
+        if support_check[0]:
+                self.rect.bottom = support_check[1]
+                self.set_idle(300,5000)
+                return
         
     def drag(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -222,21 +184,14 @@ class Pet(pygame.sprite.Sprite):
     def run(self):
         # speed movement
         self.vx += self.acc
-        if abs(self.vx) >= self.max_speed:
+        # make sure the speed doesn't exceed the limit
+        if abs(self.vx) >= self.max_speed: 
             self.vx  = self.max_speed * self.direction
         self.move()
 
         # collisions
-        # border collision
-        if self.rect.left <= 0: 
-            self.rect.left = 0
-            self.start_crash(1) # bounce right
-            return 
-        elif self.rect.right >= self.screen_width:
-            self.rect.right = self.screen_width
-            self.start_crash(-1) # bounce right
-            return 
-        
+        if self.border_collision(self.start_crash): return 
+ 
         hits = pygame.sprite.spritecollide(self, self.group, False)
         for other in hits:
             if other is self:
@@ -253,6 +208,42 @@ class Pet(pygame.sprite.Sprite):
                 return 
 
         self.animate("walk", 5)
+
+    def walk(self):
+        # movement 
+        self.vx = self.walk_speed
+        self.move()
+        
+        #collisions
+        if self.border_collision(
+            lambda dir: self.request_turn(dir, "walk")
+        ):
+            return 
+        
+        hits = pygame.sprite.spritecollide(self, self.group, False)
+        for other in hits:
+            if other is self:
+                continue 
+            if other.state == "drag" or other.state == "crash":
+                continue 
+            if self.rect.bottom <= other.rect.top:
+                continue 
+            else :
+                if self.vx > 0: # moving right
+                    self.rect.right = other.rect.left
+                else:
+                    self.rect.left = other.rect.right 
+            self.set_idle(500,5000)
+            break 
+
+        
+
+        self.animate("walk", 20)
+
+        # RANDOMLY GO IDLE
+        if random.random() < 0.003:  # tweak this value
+            self.state = "idle"
+            self.idle_until = pygame.time.get_ticks() + random.randint(3000, 10000)
 
     def start_crash(self, hit_dir):
         self.state = "crash"
@@ -401,6 +392,18 @@ class Pet(pygame.sprite.Sprite):
     def reset_move_attributes(self):
         self.vx = 0
         self.vy = 0
+
+    def border_collision(self, on_hit):
+        if self.rect.left <= 0: # left border hit
+            self.rect.left = 0
+            on_hit(1)
+            return True
+        
+        elif self.rect.right >= self.screen_width: # right border hit
+            self.rect.right = self.screen_width
+            on_hit(-1)
+            return True
+        return False 
 
     def request_turn(self, new_dir, next_state):
         if new_dir == self.direction:
