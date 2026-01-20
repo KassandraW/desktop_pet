@@ -211,7 +211,7 @@ class Pet(pygame.sprite.Sprite):
 
     def walk(self):
         # movement 
-        self.vx = self.walk_speed
+        self.vx = abs(self.walk_speed) * self.direction 
         self.move()
         
         #collisions
@@ -247,7 +247,7 @@ class Pet(pygame.sprite.Sprite):
     def start_crash(self, hit_dir):
         self.state = "crash"
         self.crash_dir = hit_dir
-        self.vx = self.knockback_x * hit_dir
+        self.vx = abs(self.knockback_x) * hit_dir
         self.vy = self.knockback_y
 
     def crash(self, platforms):
