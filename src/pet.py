@@ -132,15 +132,18 @@ class Pet(pygame.sprite.Sprite):
         self.state = "fall"
         self.idle_until = 0
         self.sleep_until = 0
+        self.next_state = ""
+        self.action_timer = 0
 
         # gravity 
         self.vy = 0
         self.gravity = 0.2
         self.drag_offset = pygame.Vector2()
 
-        self.pee_timer = 0
-
-        self.next_state = ""
+        # misc 
+        self.fall_height = self.rect.bottom
+        self.hurt_height = 300
+        
 
     def update(self, platforms):
         if self.state ==  "drag": # drag has highest priority
@@ -150,8 +153,8 @@ class Pet(pygame.sprite.Sprite):
             self.crash(platforms)
             return
 
-        elif not (self.has_support(platforms))[0]:
-            self.state = "fall"
+        elif self.state != "fall" and not (self.has_support(platforms))[0]:
+            self.start_fall()
         
         if self.state == "fall":
             self.fall(platforms)
@@ -169,6 +172,8 @@ class Pet(pygame.sprite.Sprite):
             self.turn()
         elif self.state == "pee":
             self.pee()
+        elif self.state == "ouch":
+            self.ouch()
 
     def idle(self):
         self.animate("idle", 20)
@@ -181,7 +186,7 @@ class Pet(pygame.sprite.Sprite):
                 next_state = "lay"
             elif random.random() < 0.06:
                 self.frame = 0
-                self.pee_timer = pygame.time.get_ticks() + random.randint(3000, 8000)
+                self.action_timer = pygame.time.get_ticks() + random.randint(3000, 8000)
                 self.state = "pee"
                 return
             else: 
@@ -203,7 +208,11 @@ class Pet(pygame.sprite.Sprite):
         support_check = self.has_support(platforms)
         if support_check[0]:
                 self.rect.bottom = support_check[1]
-                self.set_idle(300,5000)
+                if self.rect.bottom - self.fall_height >= self.hurt_height:
+                    self.action_timer = pygame.time.get_ticks() + random.randint(1000, 2000)
+                    self.state = "ouch"
+                else:    
+                    self.set_idle(300,5000)
                 return
         
     def drag(self):
@@ -348,13 +357,18 @@ class Pet(pygame.sprite.Sprite):
 
     def pee(self):
         if self.frame == 8:
-            if self.pee_timer < pygame.time.get_ticks():
+            if self.action_timer < pygame.time.get_ticks():
                 self.animate("pee", 15)
         else:
             self.animate("pee", 15)
             if self.frame == len(self.pee_right) - 1:
                 self.set_idle(300, 10000)
-        
+    
+    def ouch(self):
+        self.animate("ouch", 20)
+        if self.action_timer <= pygame.time.get_ticks():
+            self.set_idle(300,10000)
+
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
@@ -366,7 +380,7 @@ class Pet(pygame.sprite.Sprite):
                 pygame.event.set_grab(True)
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             if self.state == "drag":
-                self.state = "fall"
+                self.start_fall()
                 pygame.event.set_grab(False)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
              if self.rect.collidepoint(event.pos):
@@ -464,3 +478,7 @@ class Pet(pygame.sprite.Sprite):
             self.walk_speed = abs(self.walk_speed) * self.direction
             self.knockback_x = abs(self.knockback_x) * self.direction
             self.acc = abs(self.acc) * self.direction
+
+    def start_fall(self):
+        self.fall_height = self.rect.bottom
+        self.state = "fall"
