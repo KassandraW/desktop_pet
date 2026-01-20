@@ -61,6 +61,27 @@ class Pet(pygame.sprite.Sprite):
         self.turn_right = [
             pygame.transform.flip(img, True, False) for img in self.turn_left
         ]
+        self.pee_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_2.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_3.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_4.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_5.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_6.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_7.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_8.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_9.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_10.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_11.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_12.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_13.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_14.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_15.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_16.png").convert_alpha(), scale)
+        ]
+        self.pee_left = [
+            pygame.transform.flip(img, True, False) for img in self.pee_right
+        ]
 
         # frame 
         self.frame = 0
@@ -104,9 +125,10 @@ class Pet(pygame.sprite.Sprite):
         self.gravity = 0.2
         self.drag_offset = pygame.Vector2()
 
+        self.pee_timer = 0
+
         self.next_state = ""
 
-   
     def update(self, platforms):
         if self.state ==  "drag": # drag has highest priority
             self.drag()
@@ -132,6 +154,8 @@ class Pet(pygame.sprite.Sprite):
             self.sleep()
         elif self.state == "turn":
             self.turn()
+        elif self.state == "pee":
+            self.pee()
 
     def idle(self):
         self.animate("idle", 20)
@@ -142,6 +166,11 @@ class Pet(pygame.sprite.Sprite):
                 next_state = "run"
             elif random.random() < 0.1:
                 next_state = "lay"
+            elif random.random() < 0.06:
+                self.frame = 0
+                self.pee_timer = pygame.time.get_ticks() + random.randint(3000, 8000)
+                self.state = "pee"
+                return
             else: 
                 next_state = "walk"
 
@@ -303,6 +332,15 @@ class Pet(pygame.sprite.Sprite):
         if pygame.time.get_ticks() >= self.sleep_until:
             self.set_idle(300, 10000)
         self.animate("sleep", 20)
+
+    def pee(self):
+        if self.frame == 8:
+            if self.pee_timer < pygame.time.get_ticks():
+                self.animate("pee", 15)
+        else:
+            self.animate("pee", 15)
+            if self.frame == len(self.pee_right) - 1:
+                self.set_idle(300, 10000)
         
     def handle_event(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
