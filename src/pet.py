@@ -115,7 +115,7 @@ class Pet(pygame.sprite.Sprite):
             self.crash(platforms)
             return
 
-        elif not self.has_support(platforms):
+        elif not (self.has_support(platforms))[0]:
             self.state = "fall"
         
         if self.state == "fall":
@@ -134,29 +134,19 @@ class Pet(pygame.sprite.Sprite):
             self.turn()
 
     def fall(self, platforms):
-        self.animate("drag", 5)
         # physics
         self.vy += self.gravity
         self.rect.y += self.vy
 
-        # check platforms
-        for platform in platforms:
-            rect = platform.rect
-            if (
-                self.rect.bottom >= rect.top and
-                self.rect.bottom - self.vy <= rect.top and
-                self.rect.right >= rect.left and
-                self.rect.left <= rect.right
-            ):
-                self.rect.bottom = rect.top
-                self.set_idle(300,3000)
-                return
+        # animation
+        self.animate("drag", 5)
 
-        # snap to ground floor if it exceeds the limit
-        if self.rect.bottom >= self.ground_y:
-            self.rect.bottom = self.ground_y
-            self.set_idle(50,5000)
-        
+        # check if we landed on a platform or the ground
+        support_check = self.has_support(platforms)
+        if support_check[0]:
+                self.rect.bottom = support_check[1]
+                self.set_idle(300,5000)
+                return
         
 
     def walk(self):
@@ -384,24 +374,24 @@ class Pet(pygame.sprite.Sprite):
         self.image = list[self.frame]
 
     def has_support(self, platforms):
-        foot_left = self.rect.left
-        foot_right  = self.rect.right
         foot_y = self.rect.bottom + 1
 
         # check ground
         if foot_y >= self.ground_y:
-            return True
+            return (True, self.ground_y)
 
         # check platforms
         for platform in platforms:
             rect = platform.rect 
             if (
-                rect.collidepoint(foot_left, foot_y) or
-                rect.collidepoint(foot_right, foot_y)
+                self.rect.bottom >= rect.top and
+                self.rect.bottom - self.vy <= rect.top and
+                self.rect.right >= rect.left and
+                self.rect.left <= rect.right
             ):
-                return True
+                return (True, rect.top) 
 
-        return False
+        return (False, None)
     
     def move(self):
         self.rect.x
