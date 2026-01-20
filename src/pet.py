@@ -75,7 +75,7 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1 * self.direction
 
         # run
-        self.run_chance = 0.5
+        self.run_chance = 0.1
         self.acc = 0.1 * self.direction
         self.max_speed = 10
         self.knockback_x = 3 * self.direction
