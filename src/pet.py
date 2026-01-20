@@ -22,6 +22,13 @@ class Pet(pygame.sprite.Sprite):
         self.walk_left = [
             pygame.transform.flip(img, True, False) for img in self.walk_right
         ]
+        self.run_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/run_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/run_2.png").convert_alpha(), scale)
+        ]
+        self.run_left = [
+            pygame.transform.flip(img, True, False) for img in self.run_right
+        ]
         self.drag_right = [
             pygame.transform.scale(pygame.image.load("graphics/sheep/drag_1.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/drag_2.png").convert_alpha(), scale)
@@ -82,7 +89,13 @@ class Pet(pygame.sprite.Sprite):
         self.pee_left = [
             pygame.transform.flip(img, True, False) for img in self.pee_right
         ]
-
+        self.ouch_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/ouch_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/ouch_2.png").convert_alpha(), scale)
+        ]
+        self.ouch_left = [
+            pygame.transform.flip(img, True, False) for img in self.ouch_right
+        ]
         # frame 
         self.frame = 0
         self.frame_timer = 0
@@ -96,7 +109,7 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1 * self.direction
 
         # run
-        self.run_chance = 0.1
+        self.run_chance = 0.2
         self.acc = 0.1 * self.direction
         self.max_speed = 10
         self.knockback_x = 3 * self.direction
@@ -236,7 +249,7 @@ class Pet(pygame.sprite.Sprite):
                     self.start_crash(1)
                 return 
 
-        self.animate("walk", 5)
+        self.animate("run", 5)
 
     def walk(self):
         # movement 
@@ -438,7 +451,7 @@ class Pet(pygame.sprite.Sprite):
 
     def turn(self):
         self.reset_move_attributes()
-        self.animate("turn", 15)
+        self.animate("turn", 5)
 
         if self.frame == len(self.turn_right) - 1:
             self.direction = self.direction
