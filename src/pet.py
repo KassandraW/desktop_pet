@@ -317,6 +317,9 @@ class Pet(pygame.sprite.Sprite):
             if self.state == "drag":
                 self.state = "fall"
                 pygame.event.set_grab(False)
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+             if self.rect.collidepoint(event.pos):
+                self.group.remove(self)
 
     def set_idle(self, min, max):
         self.state = "idle"
