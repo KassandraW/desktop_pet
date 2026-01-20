@@ -69,22 +69,22 @@ class Pet(pygame.sprite.Sprite):
             pygame.transform.flip(img, True, False) for img in self.turn_left
         ]
         self.pee_right = [
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_1.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_2.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_3.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_4.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_5.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_6.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_7.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_8.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_9.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_10.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_11.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_12.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_13.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_14.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_15.png").convert_alpha(), scale),
-            pygame.transform.scale(pygame.image.load("graphics/sheep/pee_16.png").convert_alpha(), scale)
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_2.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_3.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_4.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_5.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_6.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_7.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_8.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_9.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_10.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_11.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_12.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_13.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_14.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_15.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_16.png").convert_alpha(), scale)
         ]
         self.pee_left = [
             pygame.transform.flip(img, True, False) for img in self.pee_right
