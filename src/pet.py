@@ -209,6 +209,7 @@ class Pet(pygame.sprite.Sprite):
         if support_check[0]:
                 self.rect.bottom = support_check[1]
                 if self.rect.bottom - self.fall_height >= self.hurt_height:
+                    self.reset_move_attributes()
                     self.action_timer = pygame.time.get_ticks() + random.randint(1000, 2000)
                     self.state = "ouch"
                 else:    
