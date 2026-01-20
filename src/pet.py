@@ -75,7 +75,7 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1 * self.direction
 
         # run
-        self.run_chance = 0.15
+        self.run_chance = 0.5
         self.acc = 0.1 * self.direction
         self.max_speed = 10
         self.knockback_x = 3 * self.direction
@@ -184,7 +184,7 @@ class Pet(pygame.sprite.Sprite):
     def run(self):
         # speed movement
         self.vx += self.acc
-        # make sure the speed doesn't exceed the limit
+
         if abs(self.vx) >= self.max_speed: 
             self.vx  = self.max_speed * self.direction
         self.move()
@@ -255,13 +255,10 @@ class Pet(pygame.sprite.Sprite):
         self.vy += self.gravity
         self.move()
 
-        if self.rect.top < 0:
-            self.rect.top = -1
-            self.reset_move_attributes()
-            self.state = "fall"
-            return 
+        if self.rect.top < 0: # hit the top of the window
+            self.rect.top = 0
+            self.vy = self.vy * -1
         
-
         # check platforms
         for platform in platforms:
             rect = platform.rect
@@ -283,16 +280,8 @@ class Pet(pygame.sprite.Sprite):
 
 
         # collisions
-        # border collision
-        if self.rect.left <= 0: 
-            self.rect.left = 0
-            self.vx = abs(self.vx)
+        if self.border_collision(self.bounce_x):
             return 
-        elif self.rect.right >= self.screen_width:
-            self.rect.right = self.screen_width
-            self.vx  = -abs(self.vx)
-            return 
-   
 
         hits = pygame.sprite.spritecollide(self, self.group, False)
         for other in hits:
@@ -309,7 +298,8 @@ class Pet(pygame.sprite.Sprite):
                     self.rect.left = other.rect.right 
                     self.vx  = abs(self.vx)
                     return
-
+    def bounce_x(self, dir):
+        self.vx = abs(self.vx) * dir
     def lay(self):
         self.animate("lay", 10)
 
