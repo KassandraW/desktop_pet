@@ -69,6 +69,7 @@ class Pet(pygame.sprite.Sprite):
 
         # direction
         self.direction = random.choice([-1,1])
+        self.crash_dir = 0
 
         # walk
         self.walk_speed = 1 * self.direction
@@ -79,9 +80,6 @@ class Pet(pygame.sprite.Sprite):
         self.max_speed = 10
         self.knockback_x = 3 * self.direction
         self.knockback_y = -6
-
-
-        self.crash_dir = 0
 
         # current speed
         self.vx = 0
@@ -117,7 +115,7 @@ class Pet(pygame.sprite.Sprite):
             self.crash(platforms)
             return
 
-        elif not self.has_support(platforms): # otherwise check if we should fall
+        elif not self.has_support(platforms):
             self.state = "fall"
         
         if self.state == "fall":
@@ -291,7 +289,7 @@ class Pet(pygame.sprite.Sprite):
                 self.rect.bottom - self.vy <= rect.top and
                 self.rect.right >= rect.left and
                 self.rect.left <= rect.right
-):
+            ):
                 self.rect.bottom = rect.top
                 self.set_idle(300,3000)
                 self.on_platform = platform
