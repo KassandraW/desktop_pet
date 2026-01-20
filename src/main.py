@@ -89,6 +89,10 @@ running = True
 transparent_surface = pygame.Surface(WINDOW.get_size())
 transparent_surface.fill((0, 0, 0))
 
+def debug_platforms():
+    for platform in platforms: 
+        pygame.draw.rect(WINDOW,(255, 0, 0), platform.rect)
+
 while running:
     clock.tick(FPS)
     WINDOW.fill((0, 0, 0))  # MUST match transparency color
@@ -125,8 +129,7 @@ while running:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
     # debug for visualizing platforms
-    #for platform in platforms: 
-        #pygame.draw.rect(WINDOW,(255, 0, 0), platform.rect)
+    debug_platforms()
 
     pygame.display.flip()
     pygame.display.update()
