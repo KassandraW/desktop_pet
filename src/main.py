@@ -129,7 +129,7 @@ while running:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
     # debug for visualizing platforms
-    debug_platforms()
+    #debug_platforms()
 
     pygame.display.flip()
     pygame.display.update()
