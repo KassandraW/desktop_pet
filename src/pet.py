@@ -224,7 +224,7 @@ class Pet(pygame.sprite.Sprite):
         for other in hits:
             if other is self:
                 continue 
-            if other.state == "drag" or other.state == "crash":
+            if other.state == "drag":
                 continue 
             if self.rect.bottom <= other.rect.top:
                 continue 
@@ -237,7 +237,6 @@ class Pet(pygame.sprite.Sprite):
             break 
 
         
-
         self.animate("walk", 20)
 
         # RANDOMLY GO IDLE
@@ -260,23 +259,11 @@ class Pet(pygame.sprite.Sprite):
             self.vy = self.vy * -1
         
         # check platforms
-        for platform in platforms:
-            rect = platform.rect
-            if (
-                self.rect.bottom >= rect.top and
-                self.rect.bottom - self.vy <= rect.top and
-                self.rect.right >= rect.left and
-                self.rect.left <= rect.right
-            ):
-                self.rect.bottom = rect.top
-                self.set_idle(300,3000)
-                self.on_platform = platform
-                return
-
-        # land on ground
-        if self.rect.bottom >= self.ground_y:
-            self.rect.bottom = self.ground_y
-            self.set_idle(500, 3000)
+        platform_check = self.has_support(platforms)
+        if platform_check[0]:
+            self.rect.bottom = platform_check[1]
+            self.set_idle(300,5000)
+            return
 
 
         # collisions
@@ -298,8 +285,10 @@ class Pet(pygame.sprite.Sprite):
                     self.rect.left = other.rect.right 
                     self.vx  = abs(self.vx)
                     return
+                
     def bounce_x(self, dir):
         self.vx = abs(self.vx) * dir
+
     def lay(self):
         self.animate("lay", 10)
 
