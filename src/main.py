@@ -95,8 +95,7 @@ def debug_platforms():
 
 def sheep_rectangles():
     for sheep in pet_group:
-        #pygame.draw.rect(WINDOW,(0, 100, 0), sheep.rect)
-        pygame.draw.rect(WINDOW,(0, 0, 100), sheep.hitbox)
+        pygame.draw.rect(WINDOW,(0, 100, 0), sheep.rect)
 
 while running:
     clock.tick(FPS)

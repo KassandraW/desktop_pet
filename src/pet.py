@@ -96,6 +96,36 @@ class Pet(pygame.sprite.Sprite):
         self.ouch_left = [
             pygame.transform.flip(img, True, False) for img in self.ouch_right
         ]
+        self.crash_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crash_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crash_2.png").convert_alpha(), scale)
+        ]
+        self.crash_left = [
+            pygame.transform.flip(img, True, False) for img in self.crash_right
+        ]
+        self.crash_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crash_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crash_2.png").convert_alpha(), scale)
+        ]
+        self.crash_left = [
+            pygame.transform.flip(img, True, False) for img in self.crash_right
+        ]
+        self.crashland_right  = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crashland_1.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crashland_2.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crashland_3.png").convert_alpha(), scale)
+        ]
+        self.crashland_left = [
+            pygame.transform.flip(img, True, False) for img in self.crashland_right
+        ]
+        self.dizzy_right = [
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crashland_3.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/crashland_4.png").convert_alpha(), scale)
+        ]
+        self.dizzy_left = [
+            pygame.transform.flip(img, True, False) for img in self.dizzy_right
+        ]
+
         # frame 
         self.frame = 0
         self.frame_timer = 0
@@ -109,7 +139,7 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1 * self.direction
 
         # run
-        self.run_chance = 0.2
+        self.run_chance = 0.5
         self.acc = 0.1 * self.direction
         self.max_speed = 10
         self.knockback_x = 3 * self.direction
@@ -174,6 +204,10 @@ class Pet(pygame.sprite.Sprite):
             self.pee()
         elif self.state == "ouch":
             self.ouch()
+        elif self.state == "crashland":
+            self.crashland()
+        elif self.state == "dizzy":
+            self.dizzy()
 
     def idle(self):
         self.animate("idle", 20)
@@ -183,7 +217,9 @@ class Pet(pygame.sprite.Sprite):
             if random.random() < self.run_chance:  # chance to run
                 next_state = "run"
             elif random.random() < 0.1:
-                next_state = "lay"
+                self.frame = 0
+                self.state = "lay"
+                return
             elif random.random() < 0.06:
                 self.frame = 0
                 self.action_timer = pygame.time.get_ticks() + random.randint(3000, 8000)
@@ -305,7 +341,7 @@ class Pet(pygame.sprite.Sprite):
     def crash(self, platforms):
         self.vy += self.gravity
         self.move()
-
+        self.animate("crash", 20)
         if self.rect.top < 0: # hit the top of the window
             self.rect.top = 0
             self.vy = self.vy * -1
@@ -314,9 +350,9 @@ class Pet(pygame.sprite.Sprite):
         platform_check = self.has_support(platforms)
         if platform_check[0]:
             self.rect.bottom = platform_check[1]
-            self.set_idle(300,5000)
+            self.frame = 0
+            self.state = "crashland"
             return
-
 
         # collisions
         if self.border_collision(self.bounce_x):
@@ -338,6 +374,18 @@ class Pet(pygame.sprite.Sprite):
                     self.vx  = abs(self.vx)
                     return
                 
+    def crashland(self):
+        self.animate("crashland", 5)
+        if self.frame == len(self.crashland_right) - 1:
+            self.action_timer = pygame.time.get_ticks() + random.randint(2000, 4000)
+            self.state = "dizzy"
+            return 
+     
+    def dizzy(self):
+        self.animate("dizzy", 20)
+        if self.action_timer < pygame.time.get_ticks():
+            self.set_idle(300,5000)
+
     def bounce_x(self, dir):
         self.vx = abs(self.vx) * dir
 
