@@ -78,6 +78,7 @@ class Pet(pygame.sprite.Sprite):
             pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_7.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_8.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_9.png").convert_alpha(), scale),
+            pygame.transform.scale(pygame.image.load("graphics/sheep/pee/peeing_2.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_10.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_11.png").convert_alpha(), scale),
             pygame.transform.scale(pygame.image.load("graphics/sheep/pee/pee_12.png").convert_alpha(), scale),
@@ -174,8 +175,8 @@ class Pet(pygame.sprite.Sprite):
         self.hurt_height = 300
 
         # chances
-        self.run_chance = 0.2
-        self.pee_chance = 0.05
+        self.run_chance = 0.1
+        self.pee_chance = 0.5
         self.sleep_chance = 0.1
         
 
@@ -427,14 +428,36 @@ class Pet(pygame.sprite.Sprite):
         self.animate("sleep", 20)
 
     def pee(self):
-        if self.frame == 8:
-            if self.action_timer < pygame.time.get_ticks():
-                self.animate("pee", 15)
+        now = pygame.time.get_ticks()
+        frames = self.pee_right if self.direction == 1 else self.pee_left
+
+        self.frame_timer += 1
+        if self.frame_timer < self.frame_delay:
+            self.image = frames[self.frame]
+            return
+
+        self.frame_timer = 0
+
+        # Intro
+        if self.frame < 8:
+            self.frame += 1
+
+        # Hold loop
+        elif self.frame in (8, 9):
+            if now < self.action_timer:
+                self.frame = 8 if self.frame == 9 else 9
+            else:
+                self.frame = 10  # continue animation
+
+        # Outro
         else:
-            self.animate("pee", 15)
-            if self.frame == len(self.pee_right) - 1:
+            self.frame += 1
+            if self.frame >= len(frames):
                 self.set_idle(300, 10000)
-    
+                return
+
+        self.image = frames[self.frame]
+
     def ouch(self):
         self.animate("ouch", 20)
         if self.action_timer <= pygame.time.get_ticks():
