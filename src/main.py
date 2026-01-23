@@ -93,6 +93,11 @@ def debug_platforms():
     for platform in platforms: 
         pygame.draw.rect(WINDOW,(255, 0, 0), platform.rect)
 
+def sheep_rectangles():
+    for sheep in pet_group:
+        #pygame.draw.rect(WINDOW,(0, 100, 0), sheep.rect)
+        pygame.draw.rect(WINDOW,(0, 0, 100), sheep.hitbox)
+
 while running:
     clock.tick(FPS)
     WINDOW.fill((0, 0, 0))  # MUST match transparency color
@@ -128,8 +133,9 @@ while running:
         if pet.rect.collidepoint(mouse_pos):
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
-    # debug for visualizing platforms
+    # debug
     #debug_platforms()
+    #sheep_rectangles()
 
     pygame.display.flip()
     pygame.display.update()
