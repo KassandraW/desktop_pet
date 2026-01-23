@@ -139,7 +139,6 @@ class Pet(pygame.sprite.Sprite):
         self.walk_speed = 1 * self.direction
 
         # run
-        self.run_chance = 0.5
         self.acc = 0.1 * self.direction
         self.max_speed = 10
         self.knockback_x = 3 * self.direction
@@ -173,6 +172,11 @@ class Pet(pygame.sprite.Sprite):
         # misc 
         self.fall_height = self.rect.bottom
         self.hurt_height = 300
+
+        # chances
+        self.run_chance = 0.2
+        self.pee_chance = 0.05
+        self.sleep_chance = 0.1
         
 
     def update(self, platforms):
@@ -216,11 +220,11 @@ class Pet(pygame.sprite.Sprite):
         if pygame.time.get_ticks() >= self.idle_until:
             if random.random() < self.run_chance:  # chance to run
                 next_state = "run"
-            elif random.random() < 0.1:
+            elif random.random() < self.sleep_chance:
                 self.frame = 0
                 self.state = "lay"
                 return
-            elif random.random() < 0.06:
+            elif random.random() < self.pee_chance:
                 self.frame = 0
                 self.action_timer = pygame.time.get_ticks() + random.randint(3000, 8000)
                 self.state = "pee"
@@ -340,39 +344,57 @@ class Pet(pygame.sprite.Sprite):
 
     def crash(self, platforms):
         self.vy += self.gravity
-        self.move()
-        self.animate("crash", 20)
-        if self.rect.top < 0: # hit the top of the window
-            self.rect.top = 0
-            self.vy = self.vy * -1
+
+        # --- horizontal move  --- 
+        self.rect.x += self.vx 
+
+        # borders
+        if self.border_collision(self.bounce_x):
+            return 
         
-        # check platforms
+        # sheep collisions on the x axis
+        hits = pygame.sprite.spritecollide(self, self.group, False)
+        for other in hits:
+            if other is self:
+                continue
+
+            if self.vx > 0:
+                self.rect.right = other.rect.left
+                self.vx = -abs(self.vx)
+            elif self.vx < 0:
+                self.rect.left = other.rect.right
+                self.vx = abs(self.vx)
+
+   
+        # --- vertical movement --- 
+        self.rect.y += self.vy
+
+        # top of screen 
+        if self.rect.top < 0: # hit the top of the window 
+            self.rect.top = 0 
+            self.vy = abs(self.vy)
+
+        # platforms / ground
         platform_check = self.has_support(platforms)
         if platform_check[0]:
             self.rect.bottom = platform_check[1]
             self.frame = 0
             self.state = "crashland"
+            self.vy = 0
             return
 
-        # collisions
-        if self.border_collision(self.bounce_x):
-            return 
-
+        # sheep collisions on y axis
         hits = pygame.sprite.spritecollide(self, self.group, False)
         for other in hits:
             if other is self:
                 continue 
-            if self.rect.bottom <= other.rect.top:
-                continue 
-            else :
-                if self.vx > 0: # moving right
-                    self.rect.right = other.rect.left
-                    self.vx = -abs(self.vx)
-                    return
-                else:
-                    self.rect.left = other.rect.right 
-                    self.vx  = abs(self.vx)
-                    return
+            if self.vy < 0: # falling
+                self.rect.top = other.rect.bottom
+                self.vy = abs(self.vy)
+            
+        # animation
+        self.animate("crash", 20)
+          
                 
     def crashland(self):
         self.animate("crashland", 5)
